@@ -8,9 +8,11 @@ using Microsoft.EntityFrameworkCore;
 using contactNumbersManager.Data;
 using contactNumbersManager.Models;
 using System.Drawing.Printing;
+using Microsoft.AspNetCore.Authorization;
 
 namespace contactNumbersManager.Controllers
 {
+    [Authorize]
     public class ContactsController : Controller
     {
         private readonly AppDbContext _context;
