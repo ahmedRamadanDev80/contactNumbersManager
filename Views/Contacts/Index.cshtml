@@ -1,0 +1,119 @@
+﻿@model IEnumerable<contactNumbersManager.Models.Contact>
+
+@{
+    ViewData["Title"] = "Index";
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalContacts = ViewBag.TotalContacts ?? 0;
+    int pageSize = ViewBag.PageSize ?? 5;
+    int totalPages = (int)Math.Ceiling((double)totalContacts / pageSize);
+}
+
+<h1>Contacts</h1>
+
+<p>
+    <a class="btn btn-success" asp-action="Create">Create New</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.Name)</th>
+            <th>@Html.DisplayNameFor(model => model.Phone)</th>
+            <th>@Html.DisplayNameFor(model => model.Address)</th>
+            <th>@Html.DisplayNameFor(model => model.Notes)</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr id="row-@item.Id">
+                @if (item.Id == ViewBag.EditingId)
+                {
+                    <form method="post" asp-action="SaveEdit">
+                        <input type="hidden" name="Id" value="@item.Id" />
+                        <input type="hidden" name="page" value="@ViewBag.CurrentPage" />
+                    <td><input class="form-control" type="text" name="Name" value="@item.Name" required /></td>
+                    <td><input class="form-control" type="text" name="Phone" value="@item.Phone" pattern="01\d{9}" title="Phone number must start with '01' and be 11 digits long." required /></td>
+                    <td><input class="form-control" type="text" name="Address" value="@item.Address" required /></td>
+                    <td><input class="form-control" type="text" name="Notes" value="@item.Notes" /></td>
+                    <td>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <a class="btn btn-secondary" href="?page=@ViewBag.CurrentPage">Cancel</a>
+                    </td>
+                    </form>
+                }
+                else
+                {
+                    <td>@item.Name</td>
+                    <td>@item.Phone</td>
+                    <td>@item.Address</td>
+                    <td>@item.Notes</td>
+                    <td>
+                        <a class="btn btn-success" asp-action="Details" asp-route-id="@item.Id">Details</a>
+                        <a class="btn btn-warning" href="?editingId=@item.Id&page=@currentPage">Edit</a>
+                        <form method="post" asp-action="Delete" asp-route-id="@item.Id" class="delete-form" style="display:inline;">
+                            <button type="button" class="btn btn-danger delete-button" data-id="@item.Id">Delete</button>
+                        </form>
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+<nav aria-label="Pagination">
+    <ul class="pagination">
+        @if (currentPage > 1)
+        {
+            <li class="page-item">
+                <a class="page-link" href="?page=1">First</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page=@(currentPage - 1)">Previous</a>
+            </li>
+        }
+
+        @for (int i = 1; i <= totalPages; i++)
+        {
+            <li class="page-item @(i == currentPage ? "active" : "")">
+                <a class="page-link" href="?page=@i">@i</a>
+            </li>
+        }
+
+        @if (currentPage < totalPages)
+        {
+            <li class="page-item">
+                <a class="page-link" href="?page=@(currentPage + 1)">Next</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page=@totalPages">Last</a>
+            </li>
+        }
+    </ul>
+</nav>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".delete-button").forEach(button => {
+            button.addEventListener("click", function () {
+                const form = this.closest("form");
+                const id = this.getAttribute("data-id");
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'You won\'t be able to undo this action!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, delete it!',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();  // Submit the form if confirmed
+                    }
+                });
+            });
+        });
+    });
+</script>
