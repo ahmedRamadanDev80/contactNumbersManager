@@ -21,19 +21,36 @@ namespace contactNumbersManager.Controllers
         }
 
         // GET: Contacts
-        public async Task<IActionResult> Index(int? editingId = null,int page = 1, int pageSize = 5)
+        public async Task<IActionResult> Index(string nameFilter = "", string phoneFilter = "", string addressFilter = "", int? editingId = null,int page = 1, int pageSize = 5)
         {
-            ViewBag.EditingId = editingId;  // Pass the ID of the contact being edited
-            ViewBag.CurrentPage = page;     // Store the current page for pagination
-            ViewBag.PageSize = pageSize;    // Number of records per page
+            // Filters
+            ViewBag.NameFilter = nameFilter;
+            ViewBag.PhoneFilter = phoneFilter;
+            ViewBag.AddressFilter = addressFilter;
+            // ID of the contact being edited
+            ViewBag.EditingId = editingId;  
+            // Pagination
+            ViewBag.CurrentPage = page;     
+            ViewBag.PageSize = pageSize;    
 
             int totalContacts = await _context.Contacts.CountAsync();
-            ViewBag.TotalContacts = totalContacts;  // Pass total contact count to view
+            ViewBag.TotalContacts = totalContacts;
 
-            var contacts = await _context.Contacts
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+            var query = _context.Contacts.AsQueryable();
+
+            if (!string.IsNullOrEmpty(nameFilter))
+                query = query.Where(c => c.Name.Contains(nameFilter));
+
+            if (!string.IsNullOrEmpty(phoneFilter))
+                query = query.Where(c => c.Phone.Contains(phoneFilter));
+
+            if (!string.IsNullOrEmpty(addressFilter))
+                query = query.Where(c => c.Address.Contains(addressFilter));
+
+            var contacts = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
 
             return View(contacts);
         }
@@ -78,7 +95,7 @@ namespace contactNumbersManager.Controllers
         }
 
         [HttpPost]
-        public IActionResult SaveEdit(Contact editedContact, int page = 1)
+        public IActionResult SaveEdit(Contact editedContact, string nameFilter ="", string phoneFilter = "", string addressFilter = "", int page = 1)
         {
             if (ModelState.IsValid)
             {
@@ -93,13 +110,10 @@ namespace contactNumbersManager.Controllers
                     _context.SaveChanges();
                 }
             }
-            // Redirect to the same page after saving changes
-            return RedirectToAction("Index", new { page });
+
+            // Redirect to the same page after saving changeswith the same filters
+            return RedirectToAction("Index", new { page, nameFilter, phoneFilter, addressFilter });
         }
-
-        
-
-
 
         // POST: Contacts/Delete/5
         [HttpPost, ActionName("Delete")]
