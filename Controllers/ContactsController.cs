@@ -16,7 +16,7 @@ namespace contactNumbersManager.Controllers
     public class ContactsController : Controller
     {
         private readonly AppDbContext _context;
-
+        
         public ContactsController(AppDbContext context)
         {
             _context = context;
@@ -97,25 +97,25 @@ namespace contactNumbersManager.Controllers
         }
 
         [HttpPost]
-        public IActionResult SaveEdit(Contact editedContact, string nameFilter ="", string phoneFilter = "", string addressFilter = "", int page = 1)
+        public IActionResult SaveEdit(Contact editedContact, string nameFilter = "", string phoneFilter = "", string addressFilter = "", int page = 1)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                var contact = _context.Contacts.Find(editedContact.Id);
-                if (contact != null)
-                {
-                    contact.Name = editedContact.Name;
-                    contact.Phone = editedContact.Phone;
-                    contact.Address = editedContact.Address;
-                    contact.Notes = editedContact.Notes;
-
-                    _context.SaveChanges();
-                }
+                return NotFound();
             }
+            var contact = _context.Contacts.Find(editedContact.Id);
+            if (contact == null) return NotFound();
 
+            contact.Name = editedContact.Name;
+            contact.Phone = editedContact.Phone;
+            contact.Address = editedContact.Address;
+            contact.Notes = editedContact.Notes;
+
+            _context.SaveChanges();
             // Redirect to the same page after saving changeswith the same filters
             return RedirectToAction("Index", new { page, nameFilter, phoneFilter, addressFilter });
         }
+
 
         // POST: Contacts/Delete/5
         [HttpPost, ActionName("Delete")]
