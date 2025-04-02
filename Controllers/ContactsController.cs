@@ -9,6 +9,9 @@ using contactNumbersManager.Data;
 using contactNumbersManager.Models;
 using System.Drawing.Printing;
 using Microsoft.AspNetCore.Authorization;
+using System.Collections.Concurrent;
+using System.Net;
+using System.Threading;
 
 namespace contactNumbersManager.Controllers
 {
@@ -16,7 +19,7 @@ namespace contactNumbersManager.Controllers
     public class ContactsController : Controller
     {
         private readonly AppDbContext _context;
-        
+        private static readonly ConcurrentDictionary<int, SemaphoreSlim> EditLock = new ConcurrentDictionary<int, SemaphoreSlim>();
         public ContactsController(AppDbContext context)
         {
             _context = context;
@@ -99,21 +102,43 @@ namespace contactNumbersManager.Controllers
         [HttpPost]
         public IActionResult SaveEdit(Contact editedContact, string nameFilter = "", string phoneFilter = "", string addressFilter = "", int page = 1)
         {
-            if (!ModelState.IsValid)
+            SemaphoreSlim semaphore = EditLock.GetOrAdd(editedContact.Id, new SemaphoreSlim(1, 1));
+
+            try
             {
-                return NotFound();
+                // if another user is currently using this method 
+                if (!semaphore.Wait(0))
+                {
+                    ViewBag.Message = "another user is currently editing this contact";
+                    return RedirectToAction("Index", new { page, nameFilter, phoneFilter, addressFilter });
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    ViewBag.Message = "not valid contactinfo was sent";
+                    return RedirectToAction("Index", new { page, nameFilter, phoneFilter, addressFilter });
+                }
+                var contact = _context.Contacts.Find(editedContact.Id);
+                if (contact == null) return NotFound();
+
+                contact.Name = editedContact.Name;
+                contact.Phone = editedContact.Phone;
+                contact.Address = editedContact.Address;
+                contact.Notes = editedContact.Notes;
+
+                _context.SaveChanges();
+                // Redirect to the same page after saving changeswith the same filters
+                return RedirectToAction("Index", new { page, nameFilter, phoneFilter, addressFilter });
+
+            }catch (Exception ex)
+            {
+                ViewBag.Message = ex.Message;
+                return RedirectToAction("Index", new { page, nameFilter, phoneFilter, addressFilter });
             }
-            var contact = _context.Contacts.Find(editedContact.Id);
-            if (contact == null) return NotFound();
-
-            contact.Name = editedContact.Name;
-            contact.Phone = editedContact.Phone;
-            contact.Address = editedContact.Address;
-            contact.Notes = editedContact.Notes;
-
-            _context.SaveChanges();
-            // Redirect to the same page after saving changeswith the same filters
-            return RedirectToAction("Index", new { page, nameFilter, phoneFilter, addressFilter });
+            finally
+            {
+                semaphore.Release();
+            }
         }
 
 

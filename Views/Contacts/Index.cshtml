@@ -1,5 +1,15 @@
 ﻿@model IEnumerable<contactNumbersManager.Models.Contact>
 
+@if (ViewBag.Message != null)
+{
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: '@ViewBag.Message'
+        });
+    </script>
+}
 @{
     ViewData["Title"] = "Index";
     int currentPage = ViewBag.CurrentPage ?? 1;

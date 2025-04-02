@@ -14,3 +14,24 @@ if (!window.signalRConnection) {
             .catch(err => console.error("SignalR Reconnection Error:", err));
     }
 }
+
+// Function to send a message
+function sendMessage() {
+    const user = document.getElementById("userInput").value;
+    const message = document.getElementById("messageInput").value;
+
+    if (user && message) {
+        // Use window.signalRConnection instead of connection
+        window.signalRConnection.invoke("SendMessage", user, message)
+            .catch(err => console.error("Error sending message: ", err));
+    } else {
+        alert("Please enter both a name and a message.");
+    }
+}
+
+// Listen for the ReceiveMessage event from the server
+window.signalRConnection.on("ReceiveMessage", (user, message) => {
+    const msg = document.createElement("div");
+    msg.textContent = `${user}: ${message}`;
+    document.getElementById("messagesList").appendChild(msg);
+});

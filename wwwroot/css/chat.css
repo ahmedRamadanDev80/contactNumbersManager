@@ -1,0 +1,72 @@
+/* Chat container */
+.chat-container {
+    width: 80%;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+}
+
+/* User input section */
+#userInput {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Message input section */
+#messageInput {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Send message button */
+#sendMessageButton {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Messages list */
+#messagesList {
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+}
+
+/* Individual message styling */
+.message {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+    .message.user-message {
+        background-color: #f1f1f1;
+    }
+
+    .message.other-message {
+        background-color: #e9ecef;
+    }
+
+    /* Username styling */
+    .message strong {
+        font-weight: bold;
+    }
+
+/* Styling for the message input field and button on focus */
+#userInput:focus, #messageInput:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+#sendMessageButton:focus {
+    outline: none;
+    border-color: #0056b3;
+}
